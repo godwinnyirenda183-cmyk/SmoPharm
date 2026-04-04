@@ -1,0 +1,10 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # Generate companion classes for all tables
+          generate_connect_constructor: true
+          # Use the newer drift API
+          sql:
+            dialect: sqlite
