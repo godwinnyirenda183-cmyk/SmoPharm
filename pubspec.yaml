@@ -34,6 +34,12 @@ dependencies:
   # Connectivity detection
   connectivity_plus: ^6.0.3
 
+  # Barcode scanning
+  mobile_scanner: ^6.0.2
+
+  # Bluetooth thermal printing (58mm / 80mm ESC/POS)
+  print_bluetooth_thermal: ^1.0.9
+
   # UUID generation
   uuid: ^4.4.0
 

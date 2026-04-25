@@ -9,6 +9,8 @@ class Product {
   /// Selling price in integer cents (e.g. 1000 = ZMW 10.00).
   final int sellingPrice;
   final int lowStockThreshold;
+  /// Optional barcode (EAN-13, EAN-8, Code128, etc.).
+  final String? barcode;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -20,6 +22,7 @@ class Product {
     required this.unitOfMeasure,
     required this.sellingPrice,
     required this.lowStockThreshold,
+    this.barcode,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -42,6 +45,8 @@ class ProductInput {
   /// Selling price in integer cents.
   final int sellingPrice;
   final int lowStockThreshold;
+  /// Optional barcode.
+  final String? barcode;
 
   const ProductInput({
     required this.name,
@@ -50,5 +55,6 @@ class ProductInput {
     required this.unitOfMeasure,
     required this.sellingPrice,
     required this.lowStockThreshold,
+    this.barcode,
   });
 }

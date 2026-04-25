@@ -178,7 +178,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           onPressed: _saving
                               ? null
                               : () {
-                                  _resetTimer();
                                   _save();
                                 },
                           style: FilledButton.styleFrom(
@@ -192,6 +191,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                       strokeWidth: 2),
                                 )
                               : const Text('Save Settings'),
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton(
+                          onPressed: () =>
+                              Navigator.of(context).pushNamed('/change-password'),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(48),
+                          ),
+                          child: const Text('Change Password'),
                         ),
                       ],
                     ),

@@ -265,6 +265,57 @@ class SaleRepositoryImpl implements SaleRepository {
   }
 
   // ---------------------------------------------------------------------------
+  // listByDate
+  // ---------------------------------------------------------------------------
+
+  /// Returns all sales recorded on [date], ordered newest-first.
+  Future<List<Sale>> listByDate(DateTime date) async {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+
+    final saleRows = await (_db.select(_db.sales)
+          ..where(
+            (s) =>
+                s.recordedAt.isBiggerOrEqualValue(start) &
+                s.recordedAt.isSmallerThanValue(end),
+          )
+          ..orderBy([(s) => OrderingTerm.desc(s.recordedAt)]))
+        .get();
+
+    final sales = <Sale>[];
+    for (final row in saleRows) {
+      final itemRows = await (_db.select(_db.saleItems)
+            ..where((si) => si.saleId.equals(row.id)))
+          .get();
+
+      final items = itemRows
+          .map((r) => SaleItem(
+                id: r.id,
+                saleId: r.saleId,
+                productId: r.productId,
+                batchId: r.batchId,
+                quantity: r.quantity,
+                unitPrice: r.unitPrice,
+                lineTotal: r.lineTotal,
+              ))
+          .toList();
+
+      sales.add(Sale(
+        id: row.id,
+        userId: row.userId,
+        recordedAt: row.recordedAt,
+        totalZmw: row.totalZmw,
+        paymentMethod: _paymentMethodFromString(row.paymentMethod),
+        voided: row.voided,
+        voidReason: row.voidReason,
+        voidedAt: row.voidedAt,
+        items: items,
+      ));
+    }
+    return sales;
+  }
+
+  // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
 

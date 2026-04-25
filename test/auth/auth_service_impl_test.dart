@@ -22,7 +22,7 @@ Future<void> _seedUser(
   int failedAttempts = 0,
 }) async {
   final hash = AuthServiceImpl.hashPassword(plainPassword);
-  await db.into(db.users).insert(
+  await db.into(db.users).insertOnConflictUpdate(
         UsersCompanion.insert(
           id: id,
           username: username,

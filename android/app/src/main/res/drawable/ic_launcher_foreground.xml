@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simple pharmacy cross symbol -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M45,30 h18 v15 h15 v18 h-15 v15 h-18 v-15 h-15 v-18 h15 z"/>
+</vector>

@@ -29,6 +29,8 @@ class Products extends Table {
   // Stored as integer cents (e.g. 1000 = ZMW 10.00)
   IntColumn get sellingPrice => integer()();
   IntColumn get lowStockThreshold => integer()();
+  // Optional barcode (EAN-13, EAN-8, Code128, etc.)
+  TextColumn get barcode => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 

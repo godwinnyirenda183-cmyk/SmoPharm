@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:pharmacy_pos/data/services/receipt_service_impl.dart';
 import 'package:pharmacy_pos/domain/entities/product.dart';
 import 'package:pharmacy_pos/domain/entities/sale.dart';
@@ -55,6 +56,15 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   bool _isConfirming = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Auto-focus the search field when the screen opens.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _searchFocusNode.requestFocus();
+    });
+  }
+
+  @override
   void dispose() {
     _searchCtrl.dispose();
     _searchFocusNode.dispose();
@@ -62,6 +72,24 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   void _resetTimer() => ref.read(sessionTimeoutProvider.notifier).resetTimer();
+
+  // ---------------------------------------------------------------------------
+  // Barcode scan
+  // ---------------------------------------------------------------------------
+
+  Future<void> _openBarcodeScanner() async {
+    final barcode = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const _BarcodeScannerScreen()),
+    );
+    if (barcode != null && barcode.isNotEmpty) {
+      _searchCtrl.text = barcode;
+      await _searchProducts(barcode);
+      // If exactly one result, add it automatically.
+      if (_suggestions.length == 1) {
+        await _addToCart(_suggestions.first);
+      }
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Product search
@@ -303,14 +331,26 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                   TextFormField(
                     controller: _searchCtrl,
                     focusNode: _searchFocusNode,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Search product by name or generic name',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.search),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.qr_code_scanner),
+                        tooltip: 'Scan barcode',
+                        onPressed: _openBarcodeScanner,
+                      ),
                     ),
+                    textInputAction: TextInputAction.search,
                     onChanged: (v) {
                       _resetTimer();
                       _searchProducts(v);
+                    },
+                    onFieldSubmitted: (_) {
+                      // Enter key: add first suggestion automatically.
+                      if (_suggestions.isNotEmpty) {
+                        _addToCart(_suggestions.first);
+                      }
                     },
                   ),
                   if (_showSuggestions)
@@ -588,6 +628,84 @@ class _BottomPanel extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Text('Confirm Sale'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _BarcodeScannerScreen
+// ---------------------------------------------------------------------------
+
+class _BarcodeScannerScreen extends StatefulWidget {
+  const _BarcodeScannerScreen();
+
+  @override
+  State<_BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
+}
+
+class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
+  final MobileScannerController _controller = MobileScannerController();
+  bool _scanned = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_scanned) return;
+    final barcode = capture.barcodes.firstOrNull;
+    final value = barcode?.rawValue;
+    if (value != null && value.isNotEmpty) {
+      _scanned = true;
+      Navigator.of(context).pop(value);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Scan Barcode'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.flash_on),
+            tooltip: 'Toggle torch',
+            onPressed: () => _controller.toggleTorch(),
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          MobileScanner(
+            controller: _controller,
+            onDetect: _onDetect,
+          ),
+          // Scan overlay hint
+          Align(
+            alignment: Alignment.center,
+            child: Container(
+              width: 260,
+              height: 120,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.teal, width: 2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          Align(
+            alignment: const Alignment(0, 0.6),
+            child: Text(
+              'Point camera at barcode',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: Colors.white),
+            ),
           ),
         ],
       ),

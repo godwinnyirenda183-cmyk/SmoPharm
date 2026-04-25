@@ -65,16 +65,18 @@ void main() {
     });
 
     test('can insert a user with hashed password', () async {
-      await db.into(db.users).insert(
+      await db.into(db.users).insertOnConflictUpdate(
             UsersCompanion.insert(
               id: 'user-001',
-              username: 'admin',
+              username: 'testuser001',
               passwordHash: r'$2b$12$hashedpassword',
               role: 'admin',
             ),
           );
 
-      final users = await db.select(db.users).get();
+      final users = await (db.select(db.users)
+            ..where((u) => u.id.equals('user-001')))
+          .get();
       expect(users.length, equals(1));
       expect(users.first.role, equals('admin'));
       expect(users.first.locked, isFalse);

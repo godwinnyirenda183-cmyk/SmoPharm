@@ -32,6 +32,7 @@ class ProductRepositoryImpl implements ProductRepository {
             unitOfMeasure: input.unitOfMeasure,
             sellingPrice: input.sellingPrice,
             lowStockThreshold: input.lowStockThreshold,
+            barcode: Value(input.barcode),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
@@ -45,6 +46,7 @@ class ProductRepositoryImpl implements ProductRepository {
       unitOfMeasure: input.unitOfMeasure,
       sellingPrice: input.sellingPrice,
       lowStockThreshold: input.lowStockThreshold,
+      barcode: input.barcode,
       createdAt: now,
       updatedAt: now,
     );
@@ -66,6 +68,7 @@ class ProductRepositoryImpl implements ProductRepository {
         unitOfMeasure: Value(input.unitOfMeasure),
         sellingPrice: Value(input.sellingPrice),
         lowStockThreshold: Value(input.lowStockThreshold),
+        barcode: Value(input.barcode),
         updatedAt: Value(now),
       ),
     );
@@ -120,11 +123,24 @@ class ProductRepositoryImpl implements ProductRepository {
           ..where(
             (p) =>
                 p.name.lower().like(pattern) |
-                p.genericName.lower().like(pattern),
+                p.genericName.lower().like(pattern) |
+                p.barcode.lower().like(pattern),
           ))
         .get();
 
     return rows.map(_rowToEntity).toList();
+  }
+
+  // ---------------------------------------------------------------------------
+  // findByBarcode
+  // ---------------------------------------------------------------------------
+
+  /// Returns the product whose barcode exactly matches [barcode], or null.
+  Future<Product?> findByBarcode(String barcode) async {
+    final row = await (_db.select(_db.products)
+          ..where((p) => p.barcode.equals(barcode)))
+        .getSingleOrNull();
+    return row == null ? null : _rowToEntity(row);
   }
 
   // ---------------------------------------------------------------------------
@@ -202,6 +218,7 @@ class ProductRepositoryImpl implements ProductRepository {
       unitOfMeasure: row.unitOfMeasure as String,
       sellingPrice: row.sellingPrice as int,
       lowStockThreshold: row.lowStockThreshold as int,
+      barcode: row.barcode as String?,
       createdAt: row.createdAt as DateTime,
       updatedAt: row.updatedAt as DateTime,
     );
